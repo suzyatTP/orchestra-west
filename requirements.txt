@@ -1,7 +1,10 @@
 flask
 flask-cors
 gunicorn
+<<<<<<< HEAD
 flask
 flask_sqlalchemy
 flask_cors
 gunicorn
+=======
+>>>>>>> b0a54d7 (Add files via upload)

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Orchestra East</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: auto;
+    }
+    .wrapper {
+      width: 4000px;
+      height: 4000px;
+    }
+    svg {
+      width: 90%;
+      height: 90%;
+    }
+    .seat {
+      fill: #ccc;
+      stroke: #999;
+      stroke-width: 1;
+      cursor: pointer;
+    }
+    .label, .name-line {
+      font-size: 10px;
+      text-anchor: middle;
+      pointer-events: none;
+    }
+    .name-line {
+      font-size: 8px;
+      fill: #333;
+      dominant-baseline: central;
+    }
+    .row-label {
+      font-size: 16px;
+      fill: red;
+      font-family: sans-serif;
+      font-weight: 400;
+      dominant-baseline: middle;
+      text-anchor: middle;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <svg viewBox="0 0 3000 3000" xmlns="http://www.w3.org/2000/svg">
+      <g id="seats"></g>
+      <g id="row-labels"></g>
+    </svg>
+  </div>
+
+  <script>
+    const rows = [
+      { label: 'A', seats: [51, 49, 47, 45, 43, 41, 39, 37, 35, 33, 31], radius: 700, arc: Math.PI / 4, centerY: 2000 },
+      { label: 'B', seats: [77, 75, 73, 71, null, 57, 55, 53, 51, 49, 47, 45, 43, 41, 39, 37, 35, 33, 31, null, 7, 5, 3, 1], radius: 800, arc: Math.PI / 2, centerY: 1900 },
+      { label: 'C', seats: [85, 83, 81, 79, 77, 75, 73, 71, null, 59, 57, 55, 53, 51, 49, 47, 45, 43, 41, 39, 37, 35, 33, 31, null, 15, 13, 11, 9, 7, 5, 3, 1], radius: 900, arc: Math.PI / 1.6, centerY: 1800 },
+      { label: 'D', seats: [93, 91, 89, 87, 85, 83, 81, 79, 77, 75, 73, 71, null, 61, 59, 57, 55, 53, 51, 49, 47, 45, 43, 41, 39, 37, 35, 33, 31, null, 23, 15, 13, 11, 9, 7, 5, 3, 1], radius: 1000, arc: Math.PI / 1.5, centerY: 1700 },
+      { label: 'E', seats: [93, 91, 89, 87, 85, 83, 81, 79, 77, 75, 73, 71, null, 59, 57, 55, 53, 51, 49, 47, 45, 43, 41, 39, 37, 35, 33, 31, null, 27, 25, 23, 15, 13, 11, 9, 7, 5, 3, 1], radius: 1100, arc: Math.PI / 1.6, centerY: 1600 },
+      { label: 'F', seats: [93, 91, 87, 85, 83, 81, 79, 77, 75, 73, 71, null, 61, 59, 57, 55, 53, 51, 49, 47, 45, 43, 41, 39, 37, 35, 33, 31, null, 27, 25, 23, 15, 13, 11, 9, 7, 3, 1], radius: 1200, arc: Math.PI / 1.8, centerY: 1500 },
+      { label: 'G', seats: [79, 77, 75, 73, 71, null, 51, 49, 47, 45, 43, 41, 39, 37, 35, 33, 31, null, 15, 13, 11, 9, 7, 3, 1], radius: 1300, arc: Math.PI / 3, centerY: 1400 },
+    ];
+
+    const centerX = 1300;
+    const svgNS = "http://www.w3.org/2000/svg";
+    const assignments = {};
+    const seatGroup = document.getElementById("seats");
+    const labelGroup = document.getElementById("row-labels");
+
+    rows.forEach(row => {
+      const total = row.seats.length;
+      const angleStart = -row.arc / 2;
+      const angleStep = row.arc / (total - 1);
+      let firstX, firstY, lastX, lastY;
+
+      row.seats.forEach((seatNumber, i) => {
+        const angle = angleStart + i * angleStep;
+        const x = centerX + row.radius * Math.sin(angle);
+        const y = row.centerY - row.radius * Math.cos(angle);
+
+        if (seatNumber !== null) {
+          const seatId = `${row.label}-${seatNumber}`;
+          const group = document.createElementNS(svgNS, "g");
+          group.setAttribute("transform", `rotate(${angle * 180 / Math.PI}, ${x}, ${y})`);
+          group.setAttribute("data-seat-id", seatId);
+
+          const rect = document.createElementNS(svgNS, "rect");
+          rect.setAttribute("x", x - 25);
+          rect.setAttribute("y", y - 25);
+          rect.setAttribute("width", 50);
+          rect.setAttribute("height", 50);
+          rect.setAttribute("rx", 6);
+          rect.setAttribute("ry", 6);
+          rect.setAttribute("fill", "#ccc");
+          rect.setAttribute("stroke", "#999");
+
+          const label = document.createElementNS(svgNS, "text");
+          label.setAttribute("x", x);
+          label.setAttribute("y", y - 6);
+          label.setAttribute("class", "label");
+          label.textContent = seatNumber;
+
+          const nameLine1 = document.createElementNS(svgNS, "text");
+          nameLine1.setAttribute("x", x);
+          nameLine1.setAttribute("y", y + 6);
+          nameLine1.setAttribute("class", "name-line");
+
+          const nameLine2 = document.createElementNS(svgNS, "text");
+          nameLine2.setAttribute("x", x);
+          nameLine2.setAttribute("y", y + 16);
+          nameLine2.setAttribute("class", "name-line");
+
+          group.appendChild(rect);
+          group.appendChild(label);
+          group.appendChild(nameLine1);
+          group.appendChild(nameLine2);
+          seatGroup.appendChild(group);
+
+          group.addEventListener("click", () => {
+            const input = prompt(`Assign a name to seat ${seatId} (type 'x' to black out):`);
+            if (input === null) return;
+            const trimmed = input.trim();
+            if (trimmed.toLowerCase() === "x") {
+              rect.setAttribute("fill", "#000");
+              rect.setAttribute("stroke", "#000");
+              label.textContent = "";
+              nameLine1.textContent = "";
+              nameLine2.textContent = "";
+              assignments[seatId] = ["x"];
+            } else {
+              const words = trimmed.split(/\s+/);
+              const mid = Math.ceil(words.length / 2);
+              const line1 = words.slice(0, mid).join(" ");
+              const line2 = words.slice(mid).join(" ");
+              nameLine1.textContent = line1;
+              nameLine2.textContent = line2;
+              label.textContent = seatNumber;
+              rect.setAttribute("fill", "#ccc");
+              rect.setAttribute("stroke", "#999");
+              assignments[seatId] = [line1, line2];
+            }
+            fetch("/save", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(assignments)
+            });
+          });
+        } else {
+          const aisle = document.createElementNS(svgNS, "rect");
+          aisle.setAttribute("x", x - 10);
+          aisle.setAttribute("y", y - 10);
+          aisle.setAttribute("width", 20);
+          aisle.setAttribute("height", 20);
+          aisle.setAttribute("fill", "#eee");
+          aisle.setAttribute("stroke", "#aaa");
+          aisle.setAttribute("stroke-dasharray", "3 2");
+          seatGroup.appendChild(aisle);
+        }
+
+        if (firstX === undefined) {
+          firstX = x;
+          firstY = y;
+        }
+        lastX = x;
+        lastY = y;
+      });
+
+      const leftLabel = document.createElementNS(svgNS, "text");
+      leftLabel.setAttribute("x", firstX - 60);
+      leftLabel.setAttribute("y", firstY);
+      leftLabel.setAttribute("class", "row-label");
+      leftLabel.textContent = row.label;
+
+      const rightLabel = document.createElementNS(svgNS, "text");
+      rightLabel.setAttribute("x", lastX + 60);
+      rightLabel.setAttribute("y", lastY);
+      rightLabel.setAttribute("class", "row-label");
+      rightLabel.textContent = row.label;
+
+      labelGroup.appendChild(leftLabel);
+      labelGroup.appendChild(rightLabel);
+    });
+
+    // Load saved assignments
+    fetch("/load")
+      .then(res => res.json())
+      .then(data => {
+        Object.entries(data).forEach(([seatId, value]) => {
+          const seat = document.querySelector(`[data-seat-id="${seatId}"]`);
+          if (!seat) return;
+          const rect = seat.querySelector("rect");
+          const label = seat.querySelector(".label");
+          const lines = seat.querySelectorAll(".name-line");
+          if (value[0] === "x") {
+            rect.setAttribute("fill", "#000");
+            rect.setAttribute("stroke", "#000");
+            label.textContent = "";
+            lines[0].textContent = "";
+            lines[1].textContent = "";
+          } else {
+            rect.setAttribute("fill", "#ccc");
+            rect.setAttribute("stroke", "#999");
+            label.textContent = seatId.split("-")[1];
+            lines[0].textContent = value[0];
+            lines[1].textContent = value[1];
+          }
+          assignments[seatId] = value;
+        });
+      });
+  </script>
+</body>
+</html>
