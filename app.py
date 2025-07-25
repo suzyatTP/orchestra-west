@@ -5,7 +5,7 @@ import json
 app = Flask(__name__)
 ASSIGNMENTS_FILE = 'assignments.json'
 
-@app.route('/')
+@app.route('/', methods=['GET', 'HEAD'])  # Accept HEAD too
 def index():
     return render_template('index.html')
 
@@ -22,6 +22,11 @@ def load():
         with open(ASSIGNMENTS_FILE, 'r') as f:
             return jsonify(json.load(f))
     return jsonify({})
+
+# Optional: Health check route for Render
+@app.route('/health')
+def health():
+    return '', 204
 
 if __name__ == '__main__':
     app.run(debug=True)
